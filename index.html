@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Management System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Health Management System</h1>
+        </header>
+
+        <nav>
+            <button onclick="showSection('patients')" class="nav-btn">Patients</button>
+            <button onclick="showSection('doctors')" class="nav-btn">Doctors</button>
+            <button onclick="showSection('analytics')" class="nav-btn">Analytics</button>
+        </nav>
+
+        <main>
+            <!-- Patients Section -->
+            <section id="patients" class="section active">
+                <h2>Patient Management</h2>
+                
+                <div class="form-container">
+                    <h3>Add New Patient</h3>
+                    <form id="patientForm">
+                        <input type="text" id="patientName" placeholder="Patient Name" required>
+                        <input type="number" id="patientAge" placeholder="Age" required>
+                        <input type="text" id="patientDiagnosis" placeholder="Diagnosis" required>
+                        <button type="submit">Add Patient</button>
+                    </form>
+                </div>
+
+                <div class="list-container">
+                    <h3>Patient List</h3>
+                    <div id="patientList"></div>
+                </div>
+            </section>
+
+            <!-- Doctors Section -->
+            <section id="doctors" class="section">
+                <h2>Doctor Management</h2>
+                
+                <div class="form-container">
+                    <h3>Add New Doctor</h3>
+                    <form id="doctorForm">
+                        <input type="text" id="doctorName" placeholder="Doctor Name" required>
+                        <input type="text" id="doctorSpecialization" placeholder="Specialization" required>
+                        <button type="submit">Add Doctor</button>
+                    </form>
+                </div>
+
+                <div class="list-container">
+                    <h3>Doctor List</h3>
+                    <div id="doctorList"></div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics" class="section">
+                <h2>Health Analytics</h2>
+                
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <h3>Total Patients</h3>
+                        <p id="totalPatients">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Doctors</h3>
+                        <p id="totalDoctors">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Average Age</h3>
+                        <p id="averageAge">0</p>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Common Diagnoses</h3>
+                    <div id="diagnosisChart"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Simple data storage (in real app, connect to backend)
+        let patients = [];
+        let doctors = [];
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionName).classList.add('active');
+            
+            if (sectionName === 'analytics') {
+                updateAnalytics();
+            }
+        }
+
+        // Patient management
+        document.getElementById('patientForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const patient = {
+                id: Date.now(),
+                name: document.getElementById('patientName').value,
+                age: parseInt(document.getElementById('patientAge').value),
+                diagnosis: document.getElementById('patientDiagnosis').value
+            };
+            
+            patients.push(patient);
+            displayPatients();
+            this.reset();
+        });
+
+        function displayPatients() {
+            const patientList = document.getElementById('patientList');
+            patientList.innerHTML = '';
+            
+            patients.forEach(patient => {
+                const patientDiv = document.createElement('div');
+                patientDiv.className = 'item';
+                patientDiv.innerHTML = `
+                    <strong>${patient.name}</strong> (Age: ${patient.age})
+                    <br>Diagnosis: ${patient.diagnosis}
+                `;
+                patientList.appendChild(patientDiv);
+            });
+        }
+
+        // Doctor management
+        document.getElementById('doctorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const doctor = {
+                id: Date.now(),
+                name: document.getElementById('doctorName').value,
+                specialization: document.getElementById('doctorSpecialization').value
+            };
+            
+            doctors.push(doctor);
+            displayDoctors();
+            this.reset();
+        });
+
+        function displayDoctors() {
+            const doctorList = document.getElementById('doctorList');
+            doctorList.innerHTML = '';
+            
+            doctors.forEach(doctor => {
+                const doctorDiv = document.createElement('div');
+                doctorDiv.className = 'item';
+                doctorDiv.innerHTML = `
+                    <strong>Dr. ${doctor.name}</strong>
+                    <br>Specialization: ${doctor.specialization}
+                `;
+                doctorList.appendChild(doctorDiv);
+            });
+        }
+
+        // Analytics
+        function updateAnalytics() {
+            document.getElementById('totalPatients').textContent = patients.length;
+            document.getElementById('totalDoctors').textContent = doctors.length;
+            
+            const avgAge = patients.length > 0 ? 
+                (patients.reduce((sum, p) => sum + p.age, 0) / patients.length).toFixed(1) : 0;
+            document.getElementById('averageAge').textContent = avgAge;
+            
+            displayDiagnosisChart();
+        }
+
+        function displayDiagnosisChart() {
+            const diagnosisCount = {};
+            patients.forEach(patient => {
+                diagnosisCount[patient.diagnosis] = (diagnosisCount[patient.diagnosis] || 0) + 1;
+            });
+            
+            const chartDiv = document.getElementById('diagnosisChart');
+            chartDiv.innerHTML = '';
+            
+            Object.entries(diagnosisCount).forEach(([diagnosis, count]) => {
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.innerHTML = `
+                    <span class="diagnosis-name">${diagnosis}</span>
+                    <div class="bar" style="width: ${(count / patients.length) * 100}%"></div>
+                    <span class="count">${count}</span>
+                `;
+                chartDiv.appendChild(bar);
+            });
+        }
+
+        // Initialize with sample data
+        patients = [
+            {id: 1, name: 'John Doe', age: 45, diagnosis: 'Hypertension'},
+            {id: 2, name: 'Jane Smith', age: 32, diagnosis: 'Diabetes'},
+            {id: 3, name: 'Bob Johnson', age: 28, diagnosis: 'Flu'}
+        ];
+
+        doctors = [
+            {id: 1, name: 'Wilson', specialization: 'Cardiology'},
+            {id: 2, name: 'Anderson', specialization: 'Internal Medicine'}
+        ];
+
+        displayPatients();
+        displayDoctors();
+    </script>
+</body>
+</html>
